@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RedGlow Link Shortener</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #0a0a1a;
+            color: #f0f0f0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 0, 0, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(255, 0, 0, 0.05) 0%, transparent 20%);
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
+        }
+        
+        .tagline {
+            color: #aaa;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+        }
+        
+        .main-card {
+            background: linear-gradient(145deg, #15152b, #0d0d1f);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            margin-bottom: 30px;
+            border: 1px solid #2a2a3a;
+        }
+        
+        .input-group {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        
+        input {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 8px 0 0 8px;
+            background: #1a1a2e;
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+        }
+        
+        input::placeholder {
+            color: #555;
+        }
+        
+        button {
+            background: #ff0033;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(255, 0, 51, 0.5);
+        }
+        
+        button:hover {
+            background: #ff0044;
+            box-shadow: 0 0 20px rgba(255, 0, 51, 0.8);
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .result {
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .result.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        
+        .short-link {
+            display: flex;
+            align-items: center;
+            background: #1a1a2e;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .short-link a {
+            flex: 1;
+            color: #4da6ff;
+            text-decoration: none;
+            word-break: break-all;
+        }
+        
+        .short-link a:hover {
+            text-decoration: underline;
+        }
+        
+        .copy-btn {
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-left: 10px;
+            font-size: 14px;
+        }
+        
+        .instructions {
+            background: #1a1a2e;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 40px;
+            border-left: 3px solid #ff0033;
+        }
+        
+        .instructions h3 {
+            margin-bottom: 15px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+        }
+        
+        .instructions i {
+            margin-right: 10px;
+            color: #ff0033;
+        }
+        
+        .instructions ol {
+            margin-left: 20px;
+            line-height: 1.6;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+        }
+        
+        .disclaimer {
+            text-align: center;
+            margin-top: 30px;
+            color: #777;
+            font-size: 0.9rem;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .glow {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 15px rgba(255, 0, 51, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(255, 0, 51, 0.8), 0 0 30px rgba(255, 0, 51, 0.4); }
+            100% { box-shadow: 0 0 15px rgba(255, 0, 51, 0.5); }
+        }
+        
+        footer {
+            margin-top: 50px;
+            text-align: center;
+            color: #555;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>RedGlow <span class="glow">Shortener</span></h1>
+            <p class="tagline">Shorten your links instantly with our dark-themed tool</p>
+        </header>
+        
+        <div class="main-card">
+            <div class="input-group">
+                <input type="url" id="urlInput" placeholder="Paste your long URL here" autocomplete="off">
+                <button id="shortenBtn">Shorten</button>
+            </div>
+            
+            <div class="result" id="result">
+                <div class="short-link">
+                    <a id="shortUrl" target="_blank">Your shortened link will appear here</a>
+                    <button class="copy-btn" id="copyBtn">Copy</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3><i class="fas fa-info-circle"></i> How to use</h3>
+            <ol>
+                <li>Paste your long URL in the input field above</li>
+                <li>Click the "Shorten" button to generate a shortened link</li>
+                <li>Click on the shortened link to visit your destination</li>
+                <li>Use the Copy button to easily share your shortened link</li>
+            </ol>
+        </div>
+        
+        <div class="disclaimer">
+            <p><i class="fas fa-exclamation-triangle"></i> Note: This link shortener works entirely in your browser. Links are not stored on any server and will be lost when you close this page.</p>
+        </div>
+    </div>
+    
+    <footer>
+        <p>RedGlow Link Shortener &copy; 2023 | Pure client-side solution</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlInput = document.getElementById('urlInput');
+            const shortenBtn = document.getElementById('shortenBtn');
+            const result = document.getElementById('result');
+            const shortUrl = document.getElementById('shortUrl');
+            const copyBtn = document.getElementById('copyBtn');
+            
+            // Generate a random string for the shortened URL
+            function generateShortCode() {
+                return Math.random().toString(36).substring(2, 8);
+            }
+            
+            // Validate URL format
+            function isValidUrl(url) {
+                try {
+                    new URL(url);
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            }
+            
+            // Handle the shortening process
+            shortenBtn.addEventListener('click', function() {
+                const longUrl = urlInput.value.trim();
+                
+                if (!longUrl) {
+                    alert('Please enter a URL');
+                    return;
+                }
+                
+                if (!isValidUrl(longUrl)) {
+                    alert('Please enter a valid URL including http:// or https://');
+                    return;
+                }
+                
+                // Generate a short code and create the shortened URL
+                const shortCode = generateShortCode();
+                const shortenedUrl = `${window.location.origin}${window.location.pathname}#${shortCode}`;
+                
+                // Store the mapping in session storage (temporary)
+                sessionStorage.setItem(shortCode, longUrl);
+                
+                // Display the shortened URL
+                shortUrl.href = shortenedUrl;
+                shortUrl.textContent = shortenedUrl;
+                result.classList.add('show');
+                
+                // Add the glowing effect to the copy button
+                copyBtn.classList.add('glow');
+            });
+            
+            // Handle the copy functionality
+            copyBtn.addEventListener('click', function() {
+                navigator.clipboard.writeText(shortUrl.href)
+                    .then(() => {
+                        copyBtn.textContent = 'Copied!';
+                        setTimeout(() => {
+                            copyBtn.textContent = 'Copy';
+                        }, 2000);
+                    })
+                    .catch(err => {
+                        console.error('Could not copy text: ', err);
+                    });
+            });
+            
+            // Check if there's a hash in the URL to redirect
+            if (window.location.hash) {
+                const shortCode = window.location.hash.substring(1);
+                const longUrl = sessionStorage.getItem(shortCode);
+                
+                if (longUrl) {
+                    // Redirect to the original URL
+                    window.location.href = longUrl;
+                } else {
+                    // If no matching URL found, show an error
+                    document.body.innerHTML = `
+                        <div style="display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column; padding: 20px; text-align: center;">
+                            <h1 style="color: #ff0033; margin-bottom: 20px;">Link Not Found</h1>
+                            <p style="color: #aaa; margin-bottom: 30px;">The shortened link you're trying to access is either invalid or has expired.</p>
+                            <a href="${window.location.pathname}" style="background: #ff0033; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; box-shadow: 0 0 15px rgba(255, 0, 51, 0.5);">Create New Short Link</a>
+                        </div>
+                    `;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
