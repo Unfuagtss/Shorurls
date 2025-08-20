@@ -197,13 +197,91 @@
             color: #555;
             font-size: 0.9rem;
         }
+        
+        .history-section {
+            margin-top: 30px;
+            background: linear-gradient(145deg, #15152b, #0d0d1f);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid #2a2a3a;
+        }
+        
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .history-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #1a1a2e;
+            margin-bottom: 10px;
+            border-radius: 8px;
+        }
+        
+        .history-item-info {
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .history-short-url {
+            color: #4da6ff;
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .history-original-url {
+            color: #aaa;
+            font-size: 0.8rem;
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .history-item-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .history-btn {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            background: #2a2a3a;
+        }
+        
+        .clear-btn {
+            background: #ff0033;
+            padding: 8px 15px;
+            font-size: 0.9rem;
+        }
+        
+        .empty-history {
+            text-align: center;
+            color: #777;
+            padding: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>RedGlow <span class="glow">Shortener</span></h1>
-            <p class="tagline">Shorten your links instantly with our dark-themed tool</p>
+            <p class="tagline">Shorten your links permanently with our dark-themed tool</p>
         </header>
         
         <div class="main-card">
@@ -220,6 +298,16 @@
             </div>
         </div>
         
+        <div class="history-section">
+            <div class="history-header">
+                <h3><i class="fas fa-history"></i> Your Shortened Links</h3>
+                <button class="clear-btn" id="clearHistoryBtn">Clear All</button>
+            </div>
+            <div class="history-list" id="historyList">
+                <!-- History items will be added here dynamically -->
+            </div>
+        </div>
+        
         <div class="instructions">
             <h3><i class="fas fa-info-circle"></i> How to use</h3>
             <ol>
@@ -227,16 +315,17 @@
                 <li>Click the "Shorten" button to generate a shortened link</li>
                 <li>Click on the shortened link to visit your destination</li>
                 <li>Use the Copy button to easily share your shortened link</li>
+                <li>All your shortened links are saved permanently in your browser</li>
             </ol>
         </div>
         
         <div class="disclaimer">
-            <p><i class="fas fa-exclamation-triangle"></i> Note: This link shortener works entirely in your browser. Links are not stored on any server and will be lost when you close this page.</p>
+            <p><i class="fas fa-exclamation-triangle"></i> Note: This link shortener works entirely in your browser. Links are stored locally in your browser and will persist even after you close this page.</p>
         </div>
     </div>
     
     <footer>
-        <p>RedGlow Link Shortener &copy; 2023 | Pure client-side solution</p>
+        <p>RedGlow Link Shortener &copy; 2023 | Client-side solution with permanent storage</p>
     </footer>
 
     <script>
@@ -246,10 +335,15 @@
             const result = document.getElementById('result');
             const shortUrl = document.getElementById('shortUrl');
             const copyBtn = document.getElementById('copyBtn');
+            const historyList = document.getElementById('historyList');
+            const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+            
+            // Initialize the links history
+            let linksHistory = JSON.parse(localStorage.getItem('redglowLinks')) || {};
             
             // Generate a random string for the shortened URL
             function generateShortCode() {
-                return Math.random().toString(36).substring(2, 8);
+                return Math.random().toString(36).substring(2, 10);
             }
             
             // Validate URL format
@@ -262,6 +356,59 @@
                 }
             }
             
+            // Display the links history
+            function displayHistory() {
+                historyList.innerHTML = '';
+                
+                if (Object.keys(linksHistory).length === 0) {
+                    historyList.innerHTML = '<div class="empty-history">No shortened links yet</div>';
+                    return;
+                }
+                
+                for (const [shortCode, longUrl] of Object.entries(linksHistory)) {
+                    const shortenedUrl = `${window.location.origin}${window.location.pathname}#${shortCode}`;
+                    
+                    const historyItem = document.createElement('div');
+                    historyItem.className = 'history-item';
+                    historyItem.innerHTML = `
+                        <div class="history-item-info">
+                            <a href="${shortenedUrl}" target="_blank" class="history-short-url">${shortenedUrl}</a>
+                            <span class="history-original-url">${longUrl}</span>
+                        </div>
+                        <div class="history-item-actions">
+                            <button class="copy-btn history-btn" data-url="${shortenedUrl}">Copy</button>
+                            <button class="delete-btn history-btn" data-code="${shortCode}">Delete</button>
+                        </div>
+                    `;
+                    
+                    historyList.appendChild(historyItem);
+                }
+                
+                // Add event listeners to the new buttons
+                document.querySelectorAll('.copy-btn.history-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const url = this.getAttribute('data-url');
+                        navigator.clipboard.writeText(url)
+                            .then(() => {
+                                const originalText = this.textContent;
+                                this.textContent = 'Copied!';
+                                setTimeout(() => {
+                                    this.textContent = originalText;
+                                }, 2000);
+                            });
+                    });
+                });
+                
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const code = this.getAttribute('data-code');
+                        delete linksHistory[code];
+                        localStorage.setItem('redglowLinks', JSON.stringify(linksHistory));
+                        displayHistory();
+                    });
+                });
+            }
+            
             // Handle the shortening process
             shortenBtn.addEventListener('click', function() {
                 const longUrl = urlInput.value.trim();
@@ -271,8 +418,14 @@
                     return;
                 }
                 
-                if (!isValidUrl(longUrl)) {
-                    alert('Please enter a valid URL including http:// or https://');
+                // Add https:// if no protocol is specified
+                let finalUrl = longUrl;
+                if (!longUrl.startsWith('http://') && !longUrl.startsWith('https://')) {
+                    finalUrl = 'https://' + longUrl;
+                }
+                
+                if (!isValidUrl(finalUrl)) {
+                    alert('Please enter a valid URL');
                     return;
                 }
                 
@@ -280,8 +433,9 @@
                 const shortCode = generateShortCode();
                 const shortenedUrl = `${window.location.origin}${window.location.pathname}#${shortCode}`;
                 
-                // Store the mapping in session storage (temporary)
-                sessionStorage.setItem(shortCode, longUrl);
+                // Store the mapping in localStorage (permanent)
+                linksHistory[shortCode] = finalUrl;
+                localStorage.setItem('redglowLinks', JSON.stringify(linksHistory));
                 
                 // Display the shortened URL
                 shortUrl.href = shortenedUrl;
@@ -290,6 +444,12 @@
                 
                 // Add the glowing effect to the copy button
                 copyBtn.classList.add('glow');
+                
+                // Update the history display
+                displayHistory();
+                
+                // Clear the input
+                urlInput.value = '';
             });
             
             // Handle the copy functionality
@@ -306,10 +466,19 @@
                     });
             });
             
+            // Clear history
+            clearHistoryBtn.addEventListener('click', function() {
+                if (confirm('Are you sure you want to clear all shortened links?')) {
+                    linksHistory = {};
+                    localStorage.removeItem('redglowLinks');
+                    displayHistory();
+                }
+            });
+            
             // Check if there's a hash in the URL to redirect
             if (window.location.hash) {
                 const shortCode = window.location.hash.substring(1);
-                const longUrl = sessionStorage.getItem(shortCode);
+                const longUrl = linksHistory[shortCode];
                 
                 if (longUrl) {
                     // Redirect to the original URL
@@ -319,12 +488,15 @@
                     document.body.innerHTML = `
                         <div style="display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column; padding: 20px; text-align: center;">
                             <h1 style="color: #ff0033; margin-bottom: 20px;">Link Not Found</h1>
-                            <p style="color: #aaa; margin-bottom: 30px;">The shortened link you're trying to access is either invalid or has expired.</p>
+                            <p style="color: #aaa; margin-bottom: 30px;">The shortened link you're trying to access is either invalid or has been deleted.</p>
                             <a href="${window.location.pathname}" style="background: #ff0033; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; box-shadow: 0 0 15px rgba(255, 0, 51, 0.5);">Create New Short Link</a>
                         </div>
                     `;
                 }
             }
+            
+            // Initial display of history
+            displayHistory();
         });
     </script>
 </body>
